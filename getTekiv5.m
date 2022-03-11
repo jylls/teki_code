@@ -1,6 +1,5 @@
 function getTekiv5(TDT,boop_duration,N_coherence,frequency_targ, frequency_back, N_on_off,beep_frequency)
 %%%%%%%%%%%%%%%%%%%%%%%%%Figuring out tone onsets%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-disp('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
 duration_tone=50;
 N_freq_targ=length(frequency_targ);
 N_freq_back=length(frequency_back);
@@ -12,12 +11,17 @@ N_power=2;
 onsets_back=gen_rand_bin_mat(N_freq_back,N_slots_back,N_power);
 onsets_targ_back=gen_rand_bin_mat(N_freq_back,N_slots_back,N_power);
 onsets_targ_targ=ones(N_freq_targ,N_slots_targ);
-disp(onsets_back)
-disp(onsets_targ_back)
+
+day=datetime('today');
+day_str=datestr(day);
+
+load(['random_tone_matrix_',day_str,'.mat'])
+onsets{end+1}={onsets_back,onsets_targ_back,onsets_targ_targ};
+save(['random_tone_matrix_',day_str,'.mat'],'onsets')
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%Tone generation%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 fs = TDT.RP.GetSFreq();
-tone_level=50;
+tone_level=70;
 ttotal_back=0:1/fs:(back_duration)/1000;
 ttotal_back=ttotal_back(1:length(ttotal_back)-1);
 tt = 0:1/fs:duration_tone/1000;
@@ -29,10 +33,13 @@ boop_back=zeros(N_freq_back,N_total_back);
 rampLength=10; %ms
 cosRamp = (rampLength/1000)*fs;
 
-%%%%%%Constructing back%%%%%%%%%%%%%%
+tone_level_back_ind=5*round((tone_level-10*log10(N_power))/5)
+%tone_level_back_ind=70
 for i=1:N_freq_back
-    TDT.getTDT_sV(frequency_back(i),tone_level);
+    TDT.getTDT_sV(frequency_back(i),tone_level_back_ind);
+ 
     T_voltage(i)=TDT.TNR;
+    disp(TDT.TNR)
     for j=1:N_slots_back
         if onsets_back(i,j)==1
             temp=T_voltage(i)*sin(2*pi*frequency_back(i)*tt);
@@ -41,10 +48,12 @@ for i=1:N_freq_back
     end
 end
 
-boop_chord_back=sum(boop_back,1)/sqrt(N_power); 
+boop_chord_back=sum(boop_back,1);%/sqrt(N_power); 
 boop_chord_back=pa_ramp(boop_chord_back, cosRamp, fs);
 
 %%%%%%Constructing targ_back%%%%%%%%%%%%%%
+tone_level_targ_back_ind=5*round((tone_level-10*log10(N_power+N_freq_targ))/5)
+%tone_level_targ_back_ind=tone_level
 ttotal_targ=0:1/fs:(targ_duration)/1000;
 ttotal_targ=ttotal_targ(1:length(ttotal_targ)-1);
 N_total_targ=length(ttotal_targ);
@@ -52,7 +61,7 @@ boop_targ_back=zeros(N_freq_back,N_total_targ);
 boop_targ_targ=zeros(N_freq_targ,N_total_targ);
 
 for i=1:N_freq_back
-    TDT.getTDT_sV(frequency_back(i),tone_level);
+    TDT.getTDT_sV(frequency_back(i),tone_level_targ_back_ind);
     T_voltage(i)=TDT.TNR;
     for j=1:N_slots_targ
         if onsets_targ_back(i,j)==1
@@ -64,7 +73,8 @@ end
 
 %%%%%%Constructing targ_targ%%%%%%%%%%%%%%
 for i=1:N_freq_targ
-    TDT.getTDT_sV(frequency_targ(i),tone_level);
+    
+    TDT.getTDT_sV(frequency_targ(i),tone_level_targ_back_ind);
     T_voltage(i)=TDT.TNR;
     for j=1:N_slots_targ
         if onsets_targ_targ(i,j)==1
@@ -75,11 +85,11 @@ for i=1:N_freq_targ
 end
 
 boop_targ=cat(1,boop_targ_back,boop_targ_targ);
-boop_chord_targ=sum(boop_targ,1)/sqrt(N_power+N_freq_targ); 
+boop_chord_targ=sum(boop_targ,1);%/sqrt(N_power+N_freq_targ); 
 boop_chord_targ=pa_ramp(boop_chord_targ, cosRamp, fs);
 
 boop_chord=cat(1,boop_chord_back,boop_chord_targ);
-disp(boop_chord)
+
 %%%%%%%Constructing beep%%%%%%%%%%%%%%
 ttbeep=0:1/fs:boop_duration/1000;
 disp(length(ttbeep));

@@ -1,6 +1,7 @@
 function runTekiv5(btag)
 
 global TDT;
+
 try
     if numel(btag)>1
         fprintf('\n\n----------------------- A new trial started -------------------\n')
@@ -30,7 +31,7 @@ try
         beep_frequency=str2double(mid_params{4});
         TDT.NT = TDT.NT+1;
         TDT = TDT.updateCS(0);
-        
+     
         getTekiv5(TDT,beep_duration,N_coherence,frequencies_targ,frequencies_back,N_on_off,beep_frequency);
         i = 0;
         

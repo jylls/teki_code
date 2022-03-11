@@ -1,6 +1,7 @@
 function getTekiv5(TDT,boop_duration,N_coherence,frequency_targ, frequency_back, N_on_off,beep_frequency)
 %%%%%%%%%%%%%%%%%%%%%%%%%Figuring out tone onsets%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 duration_tone=50;
+freq_spacing=5;
 N_freq_targ=length(frequency_targ);
 N_freq_back=length(frequency_back);
 back_duration=floor(boop_duration/2);
@@ -33,7 +34,7 @@ boop_back=zeros(N_freq_back,N_total_back);
 rampLength=10; %ms
 cosRamp = (rampLength/1000)*fs;
 
-tone_level_back_ind=5*round((tone_level-10*log10(N_power))/5)
+tone_level_back_ind=freq_spacing*round((tone_level-10*log10(N_power))/freq_spacing)
 %tone_level_back_ind=70
 for i=1:N_freq_back
     TDT.getTDT_sV(frequency_back(i),tone_level_back_ind);
@@ -52,7 +53,7 @@ boop_chord_back=sum(boop_back,1);%/sqrt(N_power);
 boop_chord_back=pa_ramp(boop_chord_back, cosRamp, fs);
 
 %%%%%%Constructing targ_back%%%%%%%%%%%%%%
-tone_level_targ_back_ind=5*round((tone_level-10*log10(N_power+N_freq_targ))/5)
+tone_level_targ_back_ind=freq_spacing*round((tone_level-10*log10(N_power+N_freq_targ))/freq_spacing)
 %tone_level_targ_back_ind=tone_level
 ttotal_targ=0:1/fs:(targ_duration)/1000;
 ttotal_targ=ttotal_targ(1:length(ttotal_targ)-1);
